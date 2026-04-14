@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CVU - Student Portal</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="logo-container">
+            <img src="https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?auto=format&fit=crop&q=80&w=100" class="logo-img" style="border-radius: 50%;">
+            <h1>Central Valley University</h1>
+        </div>
+        <nav>
+            <a href="index.html">Discover</a>
+            <a href="login.html">Student Login</a>
+            <a href="profile.html" class="active">My Portal</a>
+            <a href="messages.html">Campus Life</a>
+            <a href="tools.html">IT Support</a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <h2>My Student Record</h2>
+        <p style="color: var(--text-muted); margin-bottom: 30px;">Manage your university identity and personal preferences.</p>
+
+        <div class="profile-header">
+            <div class="profile-avatar"></div>
+            <div>
+                <h3 id="profileName" style="font-size: 24px; color: var(--primary-color); margin-bottom: 5px;">Loading Student...</h3>
+                <span id="roleBadge" style="display: none; background: #eab308; color: #fff; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: bold; margin-bottom: 10px; display: inline-block;">System Administrator</span>
+                <p id="profileBio" style="color: var(--text-muted); font-size: 16px;">Retrieving biography and student details...</p>
+            </div>
+        </div>
+
+        <div class="form-container" style="max-width: 100%; margin-top: 40px;">
+            <h3 style="border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 25px;">Update Public Information</h3>
+            
+            <div id="alertBox" class="alert"></div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
+                <form id="uploadForm" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label>Upload Official ID Photo</label>
+                        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px;">Please ensure your face is clearly visible for campus security.</p>
+                        <input type="file" id="avatar" name="avatar" required style="padding: 10px; background: #f8fafc;">
+                    </div>
+                    <button type="submit" class="btn" style="background-color: var(--text-muted);">Process Upload</button>
+                </form>
+
+                <form id="updateForm">
+                    <div class="form-group">
+                        <label for="bio">Student Biography</label>
+                        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px;">This will be visible in the campus directory.</p>
+                        <textarea id="bio" rows="4"></textarea>
+                    </div>
+                    <button type="submit" class="btn">Save Privacy Settings</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        let fetchUrl = '/api/profile';
+        if(urlParams.has('id')) {
+            fetchUrl += `?id=${urlParams.get('id')}`;
+        }
+
+        async function loadProfile() {
+            try {
+                const res = await fetch(fetchUrl);
+                if (res.status === 404) {
+                    document.getElementById('profileName').textContent = 'Student ID Not Recognized';
+                    document.getElementById('profileBio').textContent = 'Please contact IT services.';
+                    document.getElementById('roleBadge').style.display = 'none';
+                    return;
+                }
+                const user = await res.json();
+                
+                document.getElementById('profileName').textContent = user.username || 'Unregistered Applicant';
+                document.getElementById('profileBio').textContent = user.bio || 'No public information provided.';
+                document.getElementById('bio').value = user.bio || '';
+
+                if (user.is_admin) {
+                    document.getElementById('roleBadge').style.display = 'inline-block';
+                } else {
+                    document.getElementById('roleBadge').style.display = 'none';
+                }
+            } catch(e) { console.error('Encountered fetch issue.'); }
+        }
+
+        loadProfile();
+
+        document.getElementById('updateForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const bio = document.getElementById('bio').value;
+            const payload = { bio: bio };
+
+            try {
+                const res = await fetch('/api/profile/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if(data.success) {
+                    alert('Official records modified successfully!');
+                    loadProfile();
+                } else alert('Central Database Error: ' + data.error);
+            } catch(e) {}
+        });
+
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            try {
+                const res = await fetch('/api/upload-avatar', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if(data.success) {
+                    alert('Photo mapped to: ' + data.path);
+                }
+            } catch(e) {}
+        });
+    </script>
+</body>
+</html>

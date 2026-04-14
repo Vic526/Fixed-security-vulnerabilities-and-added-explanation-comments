@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CVU - Secure Login</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body style="background-color: #f1f5f9; display: flex; flex-direction: column; min-height: 100vh;">
+    <header>
+        <div class="logo-container">
+            <img src="https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?auto=format&fit=crop&q=80&w=100" class="logo-img" style="border-radius: 50%;">
+            <h1>Central Valley University</h1>
+        </div>
+        <nav>
+            <a href="index.html">Discover</a>
+            <a href="login.html" class="active">Student Login</a>
+            <a href="profile.html">My Portal</a>
+            <a href="messages.html">Campus Life</a>
+            <a href="tools.html">IT Support</a>
+        </nav>
+    </header>
+
+    <div class="container" style="flex: 1; display: flex; align-items: center; justify-content: center;">
+        <div class="form-container">
+            <h2 style="font-size: 24px; color: var(--primary-color); margin-bottom: 5px;">Student Connect Portal</h2>
+            <p style="color: var(--text-muted); margin-bottom: 25px; font-size: 15px;">Please sign in with your central university credentials.</p>
+            
+            <div id="alertBox" class="alert"></div>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">University ID or Email</label>
+                    <input type="text" id="username" placeholder="e.g. s1234567" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Network Password</label>
+                    <input type="password" id="password" required>
+                </div>
+                <button type="submit" class="btn" style="margin-top: 10px;">Secure Login</button>
+            </form>
+
+            <div style="margin-top: 20px; text-align: center; border-top: 1px solid var(--border-color); padding-top: 20px;">
+                <a href="#" style="color: var(--secondary-color); font-size: 14px; text-decoration: none;">Forgot your password?</a> | 
+                <a href="#" style="color: var(--secondary-color); font-size: 14px; text-decoration: none;">IT Help Desk</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const alertBox = document.getElementById('alertBox');
+
+            alertBox.style.display = 'block';
+            alertBox.className = 'alert';
+            alertBox.textContent = 'Verifying credentials...';
+
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const contentType = response.headers.get("content-type");
+                
+                if (contentType && contentType.indexOf("application/json") !== -1) {
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        alertBox.classList.add('success');
+                        alertBox.textContent = 'Authenticated seamlessly. Taking you to your dashboard...';
+                        setTimeout(() => window.location.href = 'profile.html', 1000);
+                    } else {
+                        alertBox.classList.add('error');
+                        alertBox.textContent = data.message;
+                    }
+                } else {
+                    const textData = await response.text();
+                    alertBox.classList.add('error');
+                    alertBox.textContent = 'CVU Error 500: ' + textData;
+                }
+            } catch (error) {
+                alertBox.classList.add('error');
+                alertBox.textContent = 'Unable to connect to the authentication server.';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+{
+  "name": "vulnerable-web-app",
+  "version": "1.0.0",
+  "description": "An intentionally vulnerable Node.js web application for educational purposes.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "dependencies": {
+    "axios": "^1.14.0",
+    "bcrypt": "^6.0.0",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "csurf": "^1.11.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^8.3.2",
+    "express-session": "^1.18.0",
+    "multer": "^2.1.1",
+    "mysql2": "^3.9.7"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}

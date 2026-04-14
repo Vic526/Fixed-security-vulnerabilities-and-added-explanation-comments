@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CVU - IT Support</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .output {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: Consolas, Monaco, monospace;
+            padding: 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            white-space: pre-wrap;
+            min-height: 80px;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo-container">
+            <img src="https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?auto=format&fit=crop&q=80&w=100" class="logo-img" style="border-radius: 50%;">
+            <h1>Central Valley University</h1>
+        </div>
+        <nav>
+            <a href="index.html">Discover</a>
+            <a href="login.html">Student Login</a>
+            <a href="profile.html">My Portal</a>
+            <a href="messages.html">Campus Life</a>
+            <a href="tools.html" class="active">IT Support</a>
+        </nav>
+    </header>
+
+    <div class="hero" style="height: 250px; background-image: url('https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&q=80&w=2000');">
+        <div class="hero-content">
+            <h2 style="font-size: 32px;">Department of Academic Technology</h2>
+            <p>Empowering students with 24/7 network diagnostics and IT assistance.</p>
+        </div>
+    </div>
+
+    <div class="container" style="max-width: 900px; margin-top: 40px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
+            <div class="form-container" style="padding: 30px; border-radius: 12px;">
+                <h3 style="color: var(--primary-color); margin-bottom: 10px;">Dormitory Wi-Fi Ping</h3>
+                <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 25px;">Experiencing packet loss? Request a direct diagnostic ping from our main servers to your registered router.</p>
+                
+                <form id="pingForm">
+                    <label for="ipTarget">Router or Node IP Address</label>
+                    <input type="text" id="ipTarget" placeholder="e.g. 192.168.1.1" required style="margin-bottom: 15px;">
+                    <button type="submit" class="btn">Initiate Diagnostic Call</button>
+                </form>
+                <div class="output" id="pingOutput" style="display: none;"></div>
+            </div>
+
+            <div class="form-container" style="padding: 30px; border-radius: 12px;">
+                <h3 style="color: var(--primary-color); margin-bottom: 10px;">Cloud Resource Fetcher</h3>
+                <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 25px;">Unable to load an external syllabus or reference file securely? Proxy it directly through the IT infrastructure.</p>
+                
+                <form id="fetchForm">
+                    <label for="urlTarget">External Document Link</label>
+                    <input type="text" id="urlTarget" placeholder="http://school-site.edu/syllabus" required style="margin-bottom: 15px;">
+                    <button type="submit" class="btn" style="background-color: var(--primary-color);">Scan and Fetch Link</button>
+                </form>
+                <div class="output" id="fetchOutput" style="display: none;"></div>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 50px; padding-top: 30px; border-top: 1px solid var(--border-color);">
+            <h3 style="color: var(--primary-color);">Need Help With Something Else?</h3>
+            <p style="color: var(--text-muted);">Please call the service desk at 1-800-CVU-TECH or visit us at the Library basement.</p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('pingForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const ip = document.getElementById('ipTarget').value;
+            const output = document.getElementById('pingOutput');
+            output.style.display = 'block';
+            output.textContent = 'Contacting network hardware...';
+
+            try {
+                const res = await fetch('/api/network-ping', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ip })
+                });
+                const data = await res.json();
+                output.textContent = data.output || 'No valid heartbeat detected. Please try again.';
+            } catch (error) {
+                output.textContent = 'Diagnostic tool failed to initialize due to network congestion.';
+            }
+        });
+
+        document.getElementById('fetchForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const url = document.getElementById('urlTarget').value;
+            const output = document.getElementById('fetchOutput');
+            output.style.display = 'block';
+            output.textContent = 'Establishing secure connection...';
+
+            try {
+                const res = await fetch('/api/fetch-url', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+                const data = await res.text();
+                output.textContent = data;
+            } catch (error) {
+                output.textContent = 'Connection refused. The target server may be blocking the IT subnet.';
+            }
+        });
+    </script>
+</body>
+</html>

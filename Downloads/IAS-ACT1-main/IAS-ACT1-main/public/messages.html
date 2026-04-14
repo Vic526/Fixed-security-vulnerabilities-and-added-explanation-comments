@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CVU - Campus Forum</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="logo-container">
+            <img src="https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?auto=format&fit=crop&q=80&w=100" class="logo-img" style="border-radius: 50%;">
+            <h1>Central Valley University</h1>
+        </div>
+        <nav>
+            <a href="index.html">Discover</a>
+            <a href="login.html">Student Login</a>
+            <a href="profile.html">My Portal</a>
+            <a href="messages.html" class="active">Campus Life</a>
+            <a href="tools.html">IT Support</a>
+        </nav>
+    </header>
+
+    <div class="hero" style="height: 250px; background-image: url('https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&q=80&w=2000');">
+        <div class="hero-content">
+            <h2 style="font-size: 32px;">Student Hub & Forum</h2>
+            <p>Connect with classmates, find study groups, and discuss campus news.</p>
+        </div>
+    </div>
+
+    <div class="container" style="max-width: 800px; margin-top: 40px;">
+        <div class="form-container" style="max-width: 100%; border: none; box-shadow: none; padding: 0; margin-bottom: 40px;">
+            <h3 style="margin-bottom: 20px; color: var(--primary-color);">Start a Discussion</h3>
+            <form id="postMessage" class="form-group" style="background-color: var(--bg-color); padding: 25px; border-radius: 12px; border: 1px solid var(--border-color);">
+                <label for="msgContent" style="display: none;">Your Post</label>
+                <textarea id="msgContent" rows="3" placeholder="What's happening around campus?" required style="border: none; margin-bottom: 15px;"></textarea>
+                <div style="display: flex; justify-content: flex-end;">
+                    <button type="submit" class="btn" style="width: auto;">Post to Forum</button>
+                </div>
+            </form>
+        </div>
+
+        <h3 style="margin-bottom: 25px; border-bottom: 2px solid var(--border-color); padding-bottom: 15px;">Recent Campus Activity</h3>
+        <div id="messagesList">
+            <p style="text-align: center; color: var(--text-muted); padding: 40px 0;">Loading campus interactions...</p>
+        </div>
+    </div>
+
+    <script>
+        // Rotating avatars for dummy data
+        const avatars = [
+            'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=150',
+            'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=150',
+            'https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&q=80&w=150',
+            'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=150'
+        ];
+
+        async function loadMessages() {
+            try {
+                const res = await fetch('/api/messages');
+                const messages = await res.json();
+                const list = document.getElementById('messagesList');
+                list.innerHTML = '';
+                
+                if(messages.length === 0) {
+                    list.innerHTML = '<p style="text-align: center; color: var(--text-muted);">The forum is currently quiet. Be the first to post!</p>';
+                    return;
+                }
+
+                messages.forEach((msg, index) => {
+                    const avatarUrl = avatars[index % avatars.length];
+                    const div = document.createElement('div');
+                    div.className = 'msg-box';
+                    div.innerHTML = `
+                        <div class="msg-avatar" style="background-image: url('${avatarUrl}')"></div>
+                        <div class="msg-content-area">
+                            <div class="msg-author">
+                                <span>${msg.username} <span style="font-weight: normal; color: var(--text-muted); font-size: 14px;">@${msg.username.toLowerCase()}</span></span>
+                                <span class="msg-date">${new Date(msg.created_at).toLocaleString()}</span>
+                            </div>
+                            <div class="msg-content">${msg.content}</div>
+                        </div>
+                    `;
+                    list.appendChild(div);
+                });
+            } catch (error) {
+                console.error('Error syncing with campus database:', error);
+            }
+        }
+
+        document.getElementById('postMessage').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const content = document.getElementById('msgContent').value;
+            
+            try {
+                const res = await fetch('/api/messages', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ content })
+                });
+                
+                if (res.ok) {
+                    document.getElementById('msgContent').value = '';
+                    loadMessages();
+                } else {
+                    alert('Submission flagged by network filters. Try again.');
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        });
+
+        loadMessages();
+    </script>
+</body>
+</html>
